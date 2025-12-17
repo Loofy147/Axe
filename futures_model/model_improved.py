@@ -1,8 +1,9 @@
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 from .modules import AxisMoE, TrajectorySSM
 
-class AxisAwareGPTWithMoE(nn.Module):
+class AxisAwareGPTWithMoEImproved(nn.Module):
     def __init__(self, vocab_size, d_model=256, n_axes=4, n_paths_per_axis=3, n_head=8, n_layer=4, d_state=128, n_experts=8):
         super().__init__()
         self.d_model = d_model
@@ -19,6 +20,7 @@ class AxisAwareGPTWithMoE(nn.Module):
 
         self.moe_layer = AxisMoE(d_model, n_experts, d_axis_emb=self.d_axis_emb)
         self.trajectory_ssm = TrajectorySSM(d_model, d_state, self.d_axis_emb)
+        self.trajectory_predictor = nn.Linear(d_state, d_state)
 
         # Heads
         self.lm_head = nn.Linear(d_model, vocab_size)
@@ -30,6 +32,11 @@ class AxisAwareGPTWithMoE(nn.Module):
     def get_embeddings(self, tokens):
         return self.token_emb(tokens)
 
+    def compute_trajectory_loss(self, trajectory_states):
+        predicted_future = self.trajectory_predictor(trajectory_states[:, :-1, :])
+        actual_future = trajectory_states[:, 1:, :].detach()
+        return F.mse_loss(predicted_future, actual_future)
+
     def forward_from_embeddings(self, embeddings, axis_id):
         a = self.axis_emb(axis_id)
         gamma = self.film_gamma(a).unsqueeze(1)
@@ -37,7 +44,7 @@ class AxisAwareGPTWithMoE(nn.Module):
         x = gamma * embeddings + beta
 
         h = self.transformer_encoder(x)
-        moe_h, gate_loss = self.moe_layer(h, a)
+        moe_h, gate_loss, stability_loss = self.moe_layer(h, a)
         h = h + moe_h
 
         s_t = torch.zeros(embeddings.size(0), self.d_state).to(embeddings.device)
@@ -48,6 +55,7 @@ class AxisAwareGPTWithMoE(nn.Module):
             ssm_outputs.append(self.trajectory_ssm.C(s_t))
 
         trajectory_states = torch.stack(trajectory_states, dim=1)
+
         combined_h = h + torch.stack(ssm_outputs, dim=1)
 
         logits = self.lm_head(combined_h)
@@ -56,14 +64,25 @@ class AxisAwareGPTWithMoE(nn.Module):
         uncertainty = self.uncertainty_head(combined_h).squeeze(-1)
         temperature = torch.sigmoid(self.temp_head(combined_h)).squeeze(-1) * 2 + 0.5
 
-        return logits, axis_pred, trajectory_states, gate_loss, uncertainty, temperature, inferred_axis
+        return logits, axis_pred, trajectory_states, gate_loss, stability_loss, uncertainty, temperature, inferred_axis
 
     def forward(self, tokens, axis_id):
         embeddings = self.get_embeddings(tokens)
         return self.forward_from_embeddings(embeddings, axis_id)
 
     def infer_axis(self, tokens):
-        # A more realistic infer_axis method
+        """Infer axis from tokens by marginalizing over all possible axes"""
         with torch.no_grad():
-            logits, _, _, _, _, _, inferred_axis = self.forward(tokens.unsqueeze(0), torch.tensor([0])) # Dummy axis_id
-            return torch.argmax(inferred_axis.mean(dim=1), dim=1)
+            n_axes = self.axis_emb.num_embeddings
+            all_inferences = []
+
+            for axis_id in range(n_axes):
+                axis_tensor = torch.tensor([axis_id]).to(tokens.device)
+                _, _, _, _, _, _, _, inferred = self.forward(
+                    tokens.unsqueeze(0) if tokens.dim() == 1 else tokens,
+                    axis_tensor
+                )
+                all_inferences.append(inferred)
+
+            avg_inference = torch.stack(all_inferences).mean(dim=0)
+            return torch.argmax(avg_inference.mean(dim=1), dim=1)

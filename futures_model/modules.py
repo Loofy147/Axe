@@ -7,6 +7,7 @@ class AxisMoE(nn.Module):
         super().__init__()
         self.experts = nn.ModuleList([nn.Linear(d_model, d_model) for _ in range(n_experts)])
         self.gate = nn.Linear(d_model + d_axis_emb, n_experts)
+        self.prev_gates = None  # Track previous gates
 
     def forward(self, h, a):
         gate_input = torch.cat([h, a.unsqueeze(1).repeat(1, h.size(1), 1)], dim=-1)
@@ -37,9 +38,16 @@ class AxisMoE(nn.Module):
 
         output = final_output.view(batch_size, seq_len, d_model)
 
+        # Compute losses
         entropy_loss = -(g * torch.log(g + 1e-10)).sum(-1).mean()
 
-        return output, entropy_loss
+        stability_loss = 0.0
+        if self.training and self.prev_gates is not None:
+            stability_loss = F.mse_loss(g, self.prev_gates.detach())
+
+        self.prev_gates = g.detach() if self.training else None
+
+        return output, entropy_loss, stability_loss
 
 class TrajectorySSM(nn.Module):
     def __init__(self, d_model, d_state=128, d_axis_emb=128):
