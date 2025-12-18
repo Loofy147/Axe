@@ -76,18 +76,19 @@ class TrajectorySSM(nn.Module):
         return torch.tanh(F.linear(s_t, self.A) + self.B(a) * h_projected)
 
 class AxisAwareGPTWithMoEImproved(nn.Module):
-    def __init__(self, vocab_size, d_model=256, n_axes=4, n_paths_per_axis=3, n_head=8, n_layer=4, d_state=128, n_experts=8):
+    def __init__(self, vocab_size, d_model=256, n_axes=4, n_paths_per_axis=3, n_head=8, n_layer=4, d_state=128, n_experts=8, dropout=0.1):
         super().__init__()
         self.d_model = d_model
         self.d_state = d_state
         self.d_axis_emb = d_model // 2
 
         self.token_emb = nn.Embedding(vocab_size, d_model)
+        self.dropout = nn.Dropout(dropout)
         self.axis_emb = nn.Embedding(n_axes * n_paths_per_axis, self.d_axis_emb)
         self.film_gamma = nn.Linear(self.d_axis_emb, d_model)
         self.film_beta = nn.Linear(self.d_axis_emb, d_model)
 
-        encoder_layers = nn.TransformerEncoderLayer(d_model, n_head, batch_first=True)
+        encoder_layers = nn.TransformerEncoderLayer(d_model, n_head, batch_first=True, dropout=dropout)
         self.transformer_encoder = nn.TransformerEncoder(encoder_layers, n_layer)
 
         self.moe_layer = AxisMoE(d_model, n_experts, d_axis_emb=self.d_axis_emb)
@@ -140,6 +141,7 @@ class AxisAwareGPTWithMoEImproved(nn.Module):
 
     def forward(self, tokens, axis_id):
         embeddings = self.get_embeddings(tokens)
+        embeddings = self.dropout(embeddings)
         return self.forward_from_embeddings(embeddings, axis_id)
 
     def infer_axis(self, tokens):
@@ -214,7 +216,7 @@ class RealFuturesDataset(Dataset):
 def train_on_real_data(
     dataset_path="futures_dataset.json",
     vocab_size=50257,
-    d_model=512,
+    d_model=256,
     num_epochs=30,
     batch_size=16,
     learning_rate=1e-4,
@@ -258,7 +260,8 @@ def train_on_real_data(
         n_axes=4,
         n_paths_per_axis=3,
         n_head=8,
-        n_layer=4
+        n_layer=4,
+        dropout=0.1
     )
 
     total_params = sum(p.numel() for p in model.parameters())
@@ -407,7 +410,7 @@ def generate_with_axis(model, tokenizer, prompt_text, axis_id, max_length=30, te
 def test_axis_controllability(
     checkpoint_path="checkpoint_real_data.pt",
     vocab_size=50257,
-    d_model=512
+    d_model=256
 ):
     print("=" * 80)
     print("Axis Controllability Test")

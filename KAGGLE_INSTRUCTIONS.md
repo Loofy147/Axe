@@ -32,16 +32,15 @@ This guide will walk you through setting up and running the futures model traini
     *   Save the best model checkpoint to `/kaggle/working/checkpoint.pt`.
     *   Run the evaluation tests to assess the model's performance.
 
-## Second Run with Tuned Hyperparameters
+## Third Run: Addressing Overfitting
 
-The initial run of this script yielded a low axis accuracy of 51.67%. This second run uses tuned hyperparameters to improve the model's performance. The following changes have been made:
+The second training run achieved 100% axis accuracy, but the generated text was nonsensical. This indicates that the model has overfit the training data. This third run introduces changes to combat overfitting:
 
-*   `d_model` has been increased from 256 to 512.
-*   `num_epochs` has been increased from 20 to 30.
-*   The axis loss weight has been increased from 1.0 to 2.0.
+*   **Dropout Regularization:** Dropout has been added to the model architecture. This technique randomly deactivates a fraction of neurons during training, which prevents the model from becoming too reliant on any single neuron and encourages it to learn more robust features.
+*   **Reduced Model Size:** The model's capacity (`d_model`) has been reverted from 512 back to 256. A smaller model is less prone to overfitting.
 
-These changes are intended to increase the model's capacity, give it more time to learn, and encourage it to focus more on the axis classification task.
+These changes are intended to help the model generalize better to new data and learn the underlying semantic meaning of the axes, rather than just memorizing the training set.
 
 ## Expected Output
 
-You should see the training progress printed in the notebook's output, including the axis accuracy for each epoch. After the training is complete, the evaluation tests will run, and you will see the model's performance on the test prompts. The expected axis accuracy for this second run is higher than the initial 51.67%.
+You should see the training progress printed in the notebook's output. The target axis accuracy for this run is between 75% and 85%. The generated text should be more coherent than in the previous run.
