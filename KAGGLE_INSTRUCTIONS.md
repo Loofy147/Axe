@@ -32,15 +32,14 @@ This guide will walk you through setting up and running the futures model traini
     *   Save the best model checkpoint to `/kaggle/working/checkpoint.pt`.
     *   Run the evaluation tests to assess the model's performance.
 
-## Third Run: Addressing Overfitting
+## Fourth Run: Stabilizing Training
 
-The second training run achieved 100% axis accuracy, but the generated text was nonsensical. This indicates that the model has overfit the training data. This third run introduces changes to combat overfitting:
+The third training run failed due to training instability, likely caused by exploding gradients. The model's performance collapsed mid-training, with the loss increasing dramatically and the accuracy dropping to zero. This is a common issue when the learning rate is too high.
 
-*   **Dropout Regularization:** Dropout has been added to the model architecture. This technique randomly deactivates a fraction of neurons during training, which prevents the model from becoming too reliant on any single neuron and encourages it to learn more robust features.
-*   **Reduced Model Size:** The model's capacity (`d_model`) has been reverted from 512 back to 256. A smaller model is less prone to overfitting.
+To address this, the following change has been made:
 
-These changes are intended to help the model generalize better to new data and learn the underlying semantic meaning of the axes, rather than just memorizing the training set.
+*   **Reduced Learning Rate:** The learning rate has been reduced from `1e-4` to `5e-5`. This will make the training updates smaller and less likely to cause the gradients to explode, leading to a more stable learning process.
 
 ## Expected Output
 
-You should see the training progress printed in the notebook's output. The target axis accuracy for this run is between 75% and 85%. The generated text should be more coherent than in the previous run.
+You should see the training progress printed in the notebook's output. The training should now be stable, without the sudden collapse in performance seen in the previous run. The target axis accuracy for this run is between 75% and 85%.

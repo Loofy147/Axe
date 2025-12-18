@@ -219,7 +219,7 @@ def train_on_real_data(
     d_model=256,
     num_epochs=30,
     batch_size=16,
-    learning_rate=1e-4,
+    learning_rate=5e-5,
     checkpoint_path="checkpoint_real_data.pt"
 ):
     print("=" * 70)
