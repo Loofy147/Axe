@@ -214,8 +214,8 @@ class RealFuturesDataset(Dataset):
 def train_on_real_data(
     dataset_path="futures_dataset.json",
     vocab_size=50257,
-    d_model=256,
-    num_epochs=20,
+    d_model=512,
+    num_epochs=30,
     batch_size=16,
     learning_rate=1e-4,
     checkpoint_path="checkpoint_real_data.pt"
@@ -303,7 +303,7 @@ def train_on_real_data(
 
             loss = (
                 loss_nll +
-                1.0 * loss_axis +
+                2.0 * loss_axis +
                 0.1 * loss_traj +
                 0.01 * gate_entropy +
                 0.05 * gate_stability
@@ -407,7 +407,7 @@ def generate_with_axis(model, tokenizer, prompt_text, axis_id, max_length=30, te
 def test_axis_controllability(
     checkpoint_path="checkpoint_real_data.pt",
     vocab_size=50257,
-    d_model=256
+    d_model=512
 ):
     print("=" * 80)
     print("Axis Controllability Test")
