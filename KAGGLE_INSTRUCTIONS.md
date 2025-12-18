@@ -32,14 +32,15 @@ This guide will walk you through setting up and running the futures model traini
     *   Save the best model checkpoint to `/kaggle/working/checkpoint.pt`.
     *   Run the evaluation tests to assess the model's performance.
 
-## Fourth Run: Stabilizing Training
+## Fifth Run: Addressing Underfitting
 
-The third training run failed due to training instability, likely caused by exploding gradients. The model's performance collapsed mid-training, with the loss increasing dramatically and the accuracy dropping to zero. This is a common issue when the learning rate is too high.
+The fourth training run was stable, but the model's performance was poor, indicating that it was underfitting. To address this, the following changes have been made to the learning rate and scheduler:
 
-To address this, the following change has been made:
+*   **Increased Learning Rate:** The learning rate has been increased to `2e-4`.
+*   **Adjusted Scheduler:** The `OneCycleLR` scheduler has been adjusted to have a longer warm-up phase (`pct_start=0.3`) and a less aggressive peak.
 
-*   **Reduced Learning Rate:** The learning rate has been reduced from `1e-4` to `5e-5`. This will make the training updates smaller and less likely to cause the gradients to explode, leading to a more stable learning process.
+These changes are intended to help the model learn more effectively from the data, while the warm-up phase should prevent the training instability seen in previous runs.
 
 ## Expected Output
 
-You should see the training progress printed in the notebook's output. The training should now be stable, without the sudden collapse in performance seen in the previous run. The target axis accuracy for this run is between 75% and 85%.
+You should see the training progress printed in the notebook's output. The training should be stable, and the validation accuracy should be higher than in the previous run. The target axis accuracy for this run is between 75% and 85%.

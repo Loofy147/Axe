@@ -219,7 +219,7 @@ def train_on_real_data(
     d_model=256,
     num_epochs=30,
     batch_size=16,
-    learning_rate=5e-5,
+    learning_rate=2e-4,
     checkpoint_path="checkpoint_real_data.pt"
 ):
     print("=" * 70)
@@ -274,10 +274,10 @@ def train_on_real_data(
     from torch.optim.lr_scheduler import OneCycleLR
     scheduler = OneCycleLR(
         optimizer,
-        max_lr=learning_rate * 10,
+        max_lr=learning_rate,
         epochs=num_epochs,
         steps_per_epoch=len(train_loader),
-        pct_start=0.1
+        pct_start=0.3
     )
 
     print(f"\n4. Training for {num_epochs} epochs...")
