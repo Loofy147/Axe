@@ -32,15 +32,15 @@ This guide will walk you through setting up and running the futures model traini
     *   Save the best model checkpoint to `/kaggle/working/checkpoint.pt`.
     *   Run the evaluation tests to assess the model's performance.
 
-## Fifth Run: Addressing Underfitting
+## Seventh Run: Corrected Architecture
 
-The fourth training run was stable, but the model's performance was poor, indicating that it was underfitting. To address this, the following changes have been made to the learning rate and scheduler:
+This run corrects the architectural flaws from the previous attempt to use a pre-trained `GPT2Model`. The following changes have been made:
 
-*   **Increased Learning Rate:** The learning rate has been increased to `2e-4`.
-*   **Adjusted Scheduler:** The `OneCycleLR` scheduler has been adjusted to have a longer warm-up phase (`pct_start=0.3`) and a less aggressive peak.
+*   **Projection Layer:** A projection layer has been added to correctly map the 768-dimensional output of the `GPT2Model` to the 256-dimensional input expected by the rest of the model.
+*   **Corrected Constructor:** The model's constructor is now called with the correct arguments.
 
-These changes are intended to help the model learn more effectively from the data, while the warm-up phase should prevent the training instability seen in previous runs.
+These changes should resolve the errors from the previous run and allow the model to train successfully.
 
 ## Expected Output
 
-You should see the training progress printed in the notebook's output. The training should be stable, and the validation accuracy should be higher than in the previous run. The target axis accuracy for this run is between 75% and 85%.
+You should see the training progress printed in the notebook's output. The training should be stable, and the validation accuracy should be significantly higher than in the previous runs. The target axis accuracy for this run is between 75% and 85%.
