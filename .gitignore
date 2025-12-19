@@ -5,6 +5,7 @@
 # Vocabulary files
 *.pkl
 custom_vocab.json
+augmented_futures_dataset.json
 
 # Log files
 *.log
