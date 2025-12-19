@@ -474,10 +474,10 @@ def train_with_custom_vocab(
     from torch.optim.lr_scheduler import OneCycleLR
     scheduler = OneCycleLR(
         optimizer,
-        max_lr=learning_rate * 10,
+        max_lr=learning_rate * 5,
         epochs=num_epochs,
         steps_per_epoch=len(train_loader),
-        pct_start=0.1
+        pct_start=0.2
     )
 
     # Training loop
@@ -508,10 +508,10 @@ def train_with_custom_vocab(
             loss_axis = criterion_axis(axis_pred.mean(dim=1), axis_ids)
             loss_traj = model.compute_trajectory_loss(traj_states)
 
-            # INCREASED AXIS WEIGHT from 1.0 to 2.0
+            # Balanced axis weight
             loss = (
                 loss_nll +
-                2.0 * loss_axis +      # Was 1.0, now 2.0
+                1.0 * loss_axis +
                 0.1 * loss_traj +
                 0.01 * gate_entropy +
                 0.05 * gate_stability
