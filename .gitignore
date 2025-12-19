@@ -1,4 +1,13 @@
+# PyTorch
+*.pt
+*.pth
+
+# Vocabulary files
+*.pkl
+custom_vocab.json
+
+# Log files
+*.log
+
 # Python
 __pycache__/
-*.pyc
-*.pt
