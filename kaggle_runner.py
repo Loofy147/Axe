@@ -864,8 +864,8 @@ if __name__ == "__main__":
         dataset_path=DATASET_PATH,
         vocab_path=VOCAB_PATH,
         checkpoint_path=CHECKPOINT_PATH,
-        d_model=256,
-        num_epochs=30
+        d_model=512,
+        num_epochs=40
     )
 
     # Test the model
@@ -873,5 +873,5 @@ if __name__ == "__main__":
         test_custom_vocab_controllability(
             checkpoint_path=CHECKPOINT_PATH,
             vocab_path=VOCAB_PATH,
-            d_model=256
+            d_model=512
         )
