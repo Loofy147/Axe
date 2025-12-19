@@ -508,10 +508,10 @@ def train_with_custom_vocab(
             loss_axis = criterion_axis(axis_pred.mean(dim=1), axis_ids)
             loss_traj = model.compute_trajectory_loss(traj_states)
 
-            # Balanced axis weight
+            # Increased axis weight
             loss = (
                 loss_nll +
-                1.0 * loss_axis +
+                5.0 * loss_axis +
                 0.1 * loss_traj +
                 0.01 * gate_entropy +
                 0.05 * gate_stability
@@ -587,6 +587,20 @@ def train_with_custom_vocab(
             }, checkpoint_path)
 
             print(f"✓ Saved checkpoint (axis acc improved to {val_axis_acc:.2f}%)")
+
+        if (epoch + 1) % 10 == 0:
+            torch.save({
+                'epoch': epoch,
+                'model_state_dict': model.state_dict(),
+                'optimizer_state_dict': optimizer.state_dict(),
+                'val_loss': avg_val_loss,
+                'val_axis_acc': val_axis_acc,
+                'train_loss': avg_train_loss,
+                'train_axis_acc': train_axis_acc,
+                'vocab_size': vocab_size,
+                'perplexity': perplexity
+            }, f"checkpoint_epoch_{epoch+1}.pt")
+            print(f"✓ Saved periodic checkpoint at epoch {epoch+1}")
 
         print("=" * 80 + "\n")
 
@@ -865,7 +879,7 @@ if __name__ == "__main__":
         vocab_path=VOCAB_PATH,
         checkpoint_path=CHECKPOINT_PATH,
         d_model=512,
-        num_epochs=40
+        num_epochs=100
     )
 
     # Test the model
