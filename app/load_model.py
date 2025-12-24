@@ -2,8 +2,8 @@ import torch
 from model import FuturesModel, CustomTokenizer, build_vocabulary
 
 def load_model_and_tokenizer(
-    model_path='app/checkpoint_best.pt',
-    dataset_path='app/futures_dataset_v2.json',
+    model_path='checkpoint_best.pt',
+    dataset_path='futures_dataset_v2.json',
     vocab_size=5000,
 ):
     """Loads the trained FuturesModel and CustomTokenizer."""
@@ -47,8 +47,8 @@ if __name__ == "__main__":
     print("="*80)
 
     # Correct paths for running from the root directory
-    model_path = 'app/checkpoint_best.pt'
-    dataset_path = 'app/futures_dataset_v2.json'
+    model_path = 'checkpoint_best.pt'
+    dataset_path = 'futures_dataset_v2.json'
 
     try:
         model, tokenizer = load_model_and_tokenizer(
