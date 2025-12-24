@@ -1,6 +1,6 @@
 import gradio as gr
 import torch
-from app.load_model import load_model_and_tokenizer
+from load_model import load_model_and_tokenizer
 
 # --- 1. Load Model and Tokenizer ---
 # This is done once when the Gradio app starts.
