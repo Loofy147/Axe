@@ -1,5 +1,5 @@
 import torch
-from .model import FuturesModel, CustomTokenizer, build_vocabulary
+from model import FuturesModel, CustomTokenizer, build_vocabulary
 
 def load_model_and_tokenizer(
     model_path='app/checkpoint_best.pt',
